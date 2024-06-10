@@ -8,3 +8,5 @@ The scripts for the analyses are in the "R" folder. "Modelos.R" is the script fo
 The land use and fish community data can be accessed in the "data" folder. In "R\DataOrganization," the operations for organizing the raw data to fit the scripts are performed.
 
 In "R/output," you can find the plots generated for the article.
+
+Cite these data: [![DOI](https://zenodo.org/badge/813074125.svg)](https://zenodo.org/doi/10.5281/zenodo.11551526)
