@@ -20,14 +20,11 @@ library(ggpubr)
 gc()
 getwd()
 list.files()
-LUmont<-read.csv("DataOrganization/LUmont_corrected.csv", h=T, row.names = 1)
-LU9<-read.table("DataOrganization/LUx9_corrected.txt", h=T, row.names = 1)
-covars<-read.csv("DataOrganization/covars_corrected.csv", h=T, row.names = 1)
-Time9<-read.table("DataOrganization/duration_all.txt", h=T)
-
-#Jean - adicionei aqui
-regional_up<-read.csv("DataOrganization/regional_upland.csv", sep = ";") #lendo o arquivo com a condição de uso das bacias
-
+LUmont<-read.csv("R/DataOrganization/LUmont_corrected.csv", h=T, row.names = 1)
+LU9<-read.table("R/DataOrganization/LUx9_corrected.txt", h=T, row.names = 1)
+covars<-read.csv("R/DataOrganization/covars_corrected.csv", h=T, row.names = 1)
+Time9<-read.table("R/DataOrganization/duration_all.txt", h=T)
+regional_up<-read.csv("R/DataOrganization/regional_upland.csv", sep = ";") #lendo o arquivo com a condição de uso das bacias
 
 all(LUmont$Name_fish==LU9$Name_fish)
 all(Time9$Name_fish==LUmont$Name_fish)
@@ -42,7 +39,7 @@ preditoras<-data.frame(predi.CLU,Time9[c("Duration_70","Duration_50","Duration_3
 preditoras$NanosLU<-preditoras$Year_sampling-1985
 
 #List of fish occurrence
-fishlist<-readRDS("DataOrganization/listaPeixes_corrected.RData")
+fishlist<-readRDS("R/DataOrganization/listaPeixes_corrected.RData")
 
 # ###Calculando riqueza para cada matriz de peixes e montando uma lista nova
 # listarich<-lapply(fishlist,function(x){
@@ -59,7 +56,7 @@ fishlist<-readRDS("DataOrganization/listaPeixes_corrected.RData")
 
 #Matrizes de peixes estão numa lista
 
-fishlist<-readRDS("DataOrganization/listaPeixes_corrected.RData")
+fishlist<-readRDS("R/DataOrganization/listaPeixes_corrected.RData")
 names (fishlist)
 
 #Calculating fish beta diversity for each matrix 
@@ -126,7 +123,7 @@ a<-do.call(rbind,listaBetas)
 Turnover<-data.frame(a)
 colnames(Turnover)[1]<-"BetaDivs"
 
-######Dissimilarity between catchement land use inside sub 9
+######Dissimilarity between catchment land use inside sub 9
 
 lista.Predi<-split(preditoras, preditoras$sub9)
 
@@ -147,17 +144,10 @@ Turnover<-Turnover[order(as.numeric(Turnover$sub9)),]
 Turnover$sub9 == predi.sub9$sub9
 
 ###Joining environmental data with fish communities###
-
-###########################
-
-#Jean - adicionei aqui
-
 #merge data by the id of sub9 in both dataframes
 rm(dados.mod)
 dados.mod <- merge(Turnover, predi.sub9, by = "sub9", all = TRUE)
 dados.mod <- merge(dados.mod, regional_up, by = "sub9", all = TRUE)
-
-###########################
 
 #Scaling and centering data
 
@@ -205,11 +195,7 @@ plot(mod4.lmer)
 plot(modNULL.lmer)
 
 
-###Making the result plots for the significative models###
-
-###########################
-
-#Jean - adicionei aqui
+###Making the result plots for the significant models###
 
 colnames(dados.mod)
 
@@ -256,51 +242,5 @@ beta_models_plots
 
 #Saving
 
-save_plot("output/beta_models_plots.png", beta_models_plots, dpi= 600, base_aspect_ratio = 3:2)
-
-####Now, we will rerun the models using duration values for just 20 years of historical land use####
-###Data organization
-
-Time9_20y<-read.table("DataOrganization/duration_20y.txt", h=T)
-nomes_time20 <- Time9_20y$X9
-predi.CLU_time20 <- subset(predi.CLU, sub9 %in% nomes_time20)
-all(predi.CLU_time20$Name_fish==Time9_20y$X9)
-
-colnames(Turnover)
-colnames(Turnover)[colnames(Turnover) == "sub9"] <- "sub9"
-colnames(Turnover)
- 
-Fish.beta_time20 <- subset(Turnover, sub9 %in% nomes_time20)
-
-all(Fish.beta_time20$Name_fish==Time9_20y$Name_fish)
- 
-preditoras_time20<-data.frame(predi.CLU_time20,Time9_20y[c("Duration_70_20","Duration_50_20","Duration_30_20")])
-colnames(preditoras_time20) 
-dados.mod_time20<-data.frame(Fish.beta_time20,preditoras_time20)
-# 
-# colnames(dados.mod_time20)
-# 
-# dados.modSC_time20<-scale(dados.mod_time20[,c("Rich","LUyear0.mont","LUyear0.sub9","Duration_30_20",
-#                                 "Duration_50_20","Duration_70_20")])
-# 
-# dados.modSC_time20<-data.frame(as.factor(dados.mod_time20[,"sub9"]),dados.modSC_time20)
-# colnames(dados.modSC_time20)[1]<-"sub9"
-# str(dados.modSC_time20)
-# 
-# mod1.lmer_time20<-lmer(Rich ~ LUyear0.mont * LUyear0.sub9 + (1 | sub9), data=dados.modSC_time20)
-# mod2.lmer_time20<-lmer(Rich ~ LUyear0.mont * Duration_30_20 + (1 | sub9), data=dados.modSC_time20)
-# mod3.lmer_time20<-lmer(Rich ~ LUyear0.mont * Duration_50_20 + (1 | sub9), data=dados.modSC_time20)
-# mod4.lmer_time20<-lmer(Rich ~ LUyear0.mont * Duration_70_20 + (1 | sub9), data=dados.modSC_time20)
-# modNULL.lmer_time20<-lmer(Rich ~ 1 + (1 | sub9), data=dados.modSC_time20)
-# 
-# options(na.action = "na.fail")
-# resumodes_time20<-model.sel(mod1.lmer_time20,mod2.lmer_time20,mod3.lmer_time20,mod4.lmer_time20,modNULL.lmer_time20)
-# resumodes_time20<-as.data.frame(resumodes_time20)
-# write.csv2(resumodes_time20, "ResuMods_time20.csv")
-# 
-# tab_model(mod1.lmer_time20, string.std="std.Beta")
-# tab_model(mod2.lmer_time20, string.std="std.Beta")
-# tab_model(mod3.lmer_time20, string.std="std.Beta")
-# tab_model(mod4.lmer_time20, string.std="std.Beta")
-# tab_model(modNULL.lmer_time20, string.std="std.Beta")
+save_plot("R/output/beta_models_plots.png", beta_models_plots, dpi= 600, base_aspect_ratio = 3:2)
 

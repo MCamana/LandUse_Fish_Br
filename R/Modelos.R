@@ -102,9 +102,9 @@ plot(modNULL.lmer)
 
 ###Making the result plots for the significative models###
 
-write.csv(dados.mod, "DataOrganization/dados_plot_bruto.csv")
+write.csv(dados.mod, "R/DataOrganization/dados_plot_bruto.csv")
 
-dados.plot <- read.table("DataOrganization/dados_plot.csv", h = T, sep = ";")
+dados.plot <- read.table("R/DataOrganization/dados_plot.csv", h = T, sep = ";")
 colnames(dados.plot)
 
 #Mod3, 1º plot
@@ -179,64 +179,4 @@ rich_models_plots <- ggarrange(plot_mod3_dur, plot_mod3_mont, plot_mod1_sub9,
 rich_models_plots
 
 #Saving
-save_plot("output/rich_models_plots.png", rich_models_plots, dpi= 600, base_aspect_ratio = 3:1)
-
-####Now, we will rerun the models using duration values for just 20 years of historical land use####
-###Data organization
-Time9_20y<-read.table("DataOrganization/duration_20y.txt", h=T)
-nomes_time20 <- Time9_20y$Name_fish
-predi.CLU_time20 <- subset(predi.CLU, Name_fish %in% nomes_time20)
-
-all(predi.CLU_time20$Name_fish==Time9_20y$Name_fish)
-
-colnames(Fish.Rich)
-colnames(Fish.Rich)[colnames(Fish.Rich) == "ID_Point"] <- "Name_fish"
-
-Fish.Rich_time20 <- subset(Fish.Rich, Name_fish %in% nomes_time20)
-all(Fish.Rich_time20$Name_fish==Time9_20y$Name_fish)
-
-preditoras_time20<-data.frame(predi.CLU_time20,Time9_20y[c("Duration_70_20","Duration_50_20","Duration_30_20")])
-
-dados.mod_time20<-data.frame(Fish.Rich_time20,preditoras_time20)
-
-colnames(dados.mod_time20)
-
-#Scaling and centering data
-dados.modSC_time20<-scale(dados.mod_time20[,c("Rich","LUyear0.mont","LUyear0.sub9","Duration_30_20",
-                                              "Duration_50_20","Duration_70_20")])
-dados.modSC_time20<-data.frame(as.factor(dados.mod_time20[,"sub9"]),dados.modSC_time20)
-colnames(dados.modSC_time20)[1]<-"sub9"
-str(dados.modSC_time20)
-
-###Competing models###
-
-mod1.lmer_time20<-lmer(Rich ~ LUyear0.mont * LUyear0.sub9 + (1 | sub9), data=dados.modSC_time20)
-mod2.lmer_time20<-lmer(Rich ~ LUyear0.mont * Duration_30_20 + (1 | sub9), data=dados.modSC_time20)
-mod3.lmer_time20<-lmer(Rich ~ LUyear0.mont * Duration_50_20 + (1 | sub9), data=dados.modSC_time20)
-mod4.lmer_time20<-lmer(Rich ~ LUyear0.mont * Duration_70_20 + (1 | sub9), data=dados.modSC_time20)
-modNULL.lmer_time20<-lmer(Rich ~ 1 + (1 | sub9), data=dados.modSC_time20)
-
-#Comparing models from two methods
-
-anova(mod1.lmer,mod2.lmer,mod3.lmer,mod4.lmer,modNULL.lmer)#
-
-options(na.action = "na.fail")
-resumodes_time20<-model.sel(mod1.lmer_time20,mod2.lmer_time20,mod3.lmer_time20,mod4.lmer_time20,modNULL.lmer_time20)
-resumodes_time20<-as.data.frame(resumodes_time20)
-resumodes_time20
-
-#Individual effect for each model
-
-tab_model(mod1.lmer_time20, string.std="std.Beta")
-tab_model(mod2.lmer_time20, string.std="std.Beta")
-tab_model(mod3.lmer_time20, string.std="std.Beta")
-tab_model(mod4.lmer_time20, string.std="std.Beta")
-tab_model(modNULL.lmer_time20, string.std="std.Beta")
-
-
-
-
-
-
-
-
+save_plot("R/output/rich_models_plots.png", rich_models_plots, dpi= 600, base_aspect_ratio = 3:1)
